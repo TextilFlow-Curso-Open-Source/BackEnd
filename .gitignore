@@ -22,7 +22,7 @@ out/
 .settings/
 bin/
 
-# VS Code
+# VS Codes
 .vscode/
 
 # NetBeans

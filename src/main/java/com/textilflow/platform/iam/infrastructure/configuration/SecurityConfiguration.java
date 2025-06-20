@@ -49,6 +49,7 @@ public class SecurityConfiguration {
                         // Sin autenticación
                         .requestMatchers("/api/v1/authentication/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()  // ← AGREGAR AQUÍ
 
                         // CON autenticación (usuario logueado)
                         .requestMatchers("/api/v1/users/**").authenticated()

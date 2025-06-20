@@ -1,30 +1,26 @@
-# Multi-stage build for Spring Boot
-FROM maven:3.9.6-openjdk-21 AS builder
+# Usar imagen con Java 24
+FROM maven:3.9.9-eclipse-temurin-24
 
-# Set working directory
+# Configurar Maven con límites de memoria durante el build
+ENV MAVEN_OPTS="-Xmx512m -Xms256m -XX:+UseG1GC"
+
 WORKDIR /app
 
-# Copy pom.xml and download dependencies
+# Copiar pom.xml primero para cache de dependencias
 COPY pom.xml .
+
+# Descargar dependencias primero
 RUN mvn dependency:go-offline -B
 
-# Copy source code
+# Copiar código fuente
 COPY src ./src
 
-# Build the application
-RUN mvn clean package -DskipTests
+# Build con límites de memoria más estrictos
+RUN mvn clean package -DskipTests -Dmaven.compile.fork=true
 
-# Runtime stage
-FROM openjdk:21-jdk-slim
-
-# Set working directory
-WORKDIR /app
-
-# Copy JAR from builder stage
-COPY --from=builder /app/target/*.jar app.jar
-
-# Expose port
 EXPOSE 8080
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# JVM optimizada para poca memoria en runtime
+ENV JAVA_OPTS="-Xms256m -Xmx400m -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+
+CMD ["sh", "-c", "java $JAVA_OPTS -jar target/*.jar"]

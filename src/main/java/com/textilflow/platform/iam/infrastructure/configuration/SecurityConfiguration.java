@@ -4,6 +4,7 @@ import com.textilflow.platform.iam.infrastructure.hashing.BCryptHashingService;
 import com.textilflow.platform.iam.infrastructure.tokens.JwtTokenService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -29,6 +30,7 @@ import java.util.List;
  */
 @Configuration
 @EnableWebSecurity
+@Order(1)
 public class SecurityConfiguration {
 
     private final BCryptHashingService hashingService;
@@ -46,15 +48,19 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authz -> authz
-                        // Sin autenticación
+
+                        .requestMatchers("/actuator", "/actuator/**").permitAll()
                         .requestMatchers("/api/v1/authentication/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
-                        // CON autenticación (usuario logueado)
+
+
                         .requestMatchers("/api/v1/users/**").authenticated()
                         .requestMatchers("/api/v1/profiles/**").authenticated()
                         .requestMatchers("/api/v1/businessmen/**").authenticated()
                         .requestMatchers("/api/v1/suppliers/**").authenticated()
+
+
                         .anyRequest().authenticated()
                 );
 

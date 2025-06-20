@@ -16,6 +16,7 @@ public class AuditableModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     @Getter
     @CreatedDate
     @Column(nullable = false, updatable = false)
@@ -25,4 +26,5 @@ public class AuditableModel {
     @LastModifiedDate
     @Column(nullable = false)
     private Date updatedAt;
+
 }

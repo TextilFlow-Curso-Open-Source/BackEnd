@@ -49,7 +49,7 @@ public class SecurityConfiguration {
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authz -> authz
 
-                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/actuator", "/actuator/**").permitAll()
                         .requestMatchers("/api/v1/authentication/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 

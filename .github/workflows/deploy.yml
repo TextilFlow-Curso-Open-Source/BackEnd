@@ -3,8 +3,6 @@ name: Deploy TextilFlow to AWS
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   deploy:
@@ -22,6 +20,17 @@ jobs:
           script: |
             cd /home/ec2-user/textilflow
             git pull origin main
+            
+            # Crear archivo .env con variables externas
+            cat > .env << EOF
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
+            CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+            CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+            EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}
+            EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
+            EOF
+            
             docker-compose down
             docker-compose up -d --build
             docker-compose logs --tail=50

@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Backend Spring Boot
+  textilflow-backend:
+    build: .
+    container_name: textilflow-spring
+    ports:
+      - "5001:8080"
+    depends_on:
+      - textilflow-mysql
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
+      - DB_HOST=textilflow-mysql
+      - DB_PORT=3306
+      - DB_NAME=textilflow-platform
+      - DB_USERNAME=root
+      - DB_PASSWORD=${DB_PASSWORD}
+    networks:
+      - textilflow-network
+
+  # MySQL Database for TextilFlow
+  textilflow-mysql:
+    image: mysql:8.0
+    container_name: textilflow-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: textilflow-platform
+      MYSQL_USER: textilflowuser
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3307:3306"
+    volumes:
+      - textilflow_mysql_data:/var/lib/mysql
+    networks:
+      - textilflow-network
+
+volumes:
+  textilflow_mysql_data:
+
+networks:
+  textilflow-network:
+    driver: bridge

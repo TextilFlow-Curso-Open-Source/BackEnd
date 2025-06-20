@@ -1,29 +1,29 @@
-# Usar imagen más pequeña y existente
-FROM maven:3.9-openjdk-17-slim AS builder
+# Usar la imagen oficial de Maven con Java 17
+FROM maven:3.8-openjdk-17 AS builder
 
 WORKDIR /app
 
-# Copiar solo pom.xml primero para cache de dependencias
+# Copiar pom.xml para cache de dependencias
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
 # Copiar código fuente
 COPY src ./src
 
-# Build con menos memoria
+# Build con menos memoria y sin tests
 RUN mvn clean package -DskipTests -Dmaven.test.skip=true
 
-# Imagen final más pequeña
+# Imagen final con Java 17
 FROM openjdk:17-jre-slim
 
 WORKDIR /app
 
-# Copiar solo el JAR
+# Copiar JAR construido
 COPY --from=builder /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-# Configurar JVM para poca memoria
-ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC"
+# JVM optimizada para poca memoria (2GB RAM total)
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:MaxMetaspaceSize=128m"
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

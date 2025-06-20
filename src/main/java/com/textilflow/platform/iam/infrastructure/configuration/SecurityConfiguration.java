@@ -46,16 +46,18 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authz -> authz
-                        // Sin autenticación
+
                         .requestMatchers("/api/v1/authentication/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()  // ← AGREGAR AQUÍ
+                        .requestMatchers("/actuator/**").permitAll()  // ← CAMBIÉ: actuator/** en lugar de specific paths
 
-                        // CON autenticación (usuario logueado)
+
                         .requestMatchers("/api/v1/users/**").authenticated()
                         .requestMatchers("/api/v1/profiles/**").authenticated()
                         .requestMatchers("/api/v1/businessmen/**").authenticated()
                         .requestMatchers("/api/v1/suppliers/**").authenticated()
+
+
                         .anyRequest().authenticated()
                 );
 

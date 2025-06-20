@@ -1,12 +1,7 @@
-# Usar solo OpenJDK e instalar Maven manualmente
-FROM openjdk:17
+# Usar imagen oficial con Maven incluido
+FROM maven:3.9.9-eclipse-temurin-17
 
 WORKDIR /app
-
-# Instalar Maven
-RUN apt-get update && \
-    apt-get install -y maven && \
-    rm -rf /var/lib/apt/lists/*
 
 # Copiar archivos
 COPY pom.xml .

@@ -1,5 +1,5 @@
-# Usar la imagen oficial de Maven con Java 17
-FROM maven:3.8-openjdk-17 AS builder
+# Usar imagen oficial de Maven
+FROM maven:3.8.6-openjdk-17 AS builder
 
 WORKDIR /app
 
@@ -13,8 +13,8 @@ COPY src ./src
 # Build con menos memoria y sin tests
 RUN mvn clean package -DskipTests -Dmaven.test.skip=true
 
-# Imagen final con Java 17
-FROM openjdk:17-jre-slim
+# Imagen final - usar la imagen oficial de OpenJDK
+FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 
@@ -23,7 +23,7 @@ COPY --from=builder /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-# JVM optimizada para poca memoria (2GB RAM total)
+# JVM optimizada para poca memoria
 ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:MaxMetaspaceSize=128m"
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

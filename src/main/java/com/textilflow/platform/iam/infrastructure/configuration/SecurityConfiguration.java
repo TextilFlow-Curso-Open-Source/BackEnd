@@ -4,6 +4,7 @@ import com.textilflow.platform.iam.infrastructure.hashing.BCryptHashingService;
 import com.textilflow.platform.iam.infrastructure.tokens.JwtTokenService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -29,6 +30,7 @@ import java.util.List;
  */
 @Configuration
 @EnableWebSecurity
+@Order(1)
 public class SecurityConfiguration {
 
     private final BCryptHashingService hashingService;

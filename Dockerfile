@@ -14,7 +14,7 @@ COPY src ./src
 # Build the application
 RUN mvn clean package -DskipTests
 
-# Runtime stage
+# Runtime stages
 FROM openjdk:21-jdk-slim
 
 # Set working directory

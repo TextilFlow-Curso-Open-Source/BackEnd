@@ -36,7 +36,14 @@ jobs:
             free -h
             
             cd /home/ec2-user/textilflow
-            git pull origin main
+            
+            # FORZAR git pull (resolver conflictos automáticamente)
+            git fetch origin
+            git reset --hard origin/main
+            
+            # Verificar que tenemos la versión más reciente
+            echo "Current commit:"
+            git log --oneline -1
             
             # Crear archivo .env con variables externas
             cat > .env << EOF
@@ -51,12 +58,18 @@ jobs:
             # Parar containers existentes
             docker-compose down
             
-            # Limpiar recursos no utilizados
+            # LIMPIAR TODO EL CACHE DE DOCKER (crítico)
             docker system prune -f
+            docker builder prune -f
+            docker image prune -f
             
-            # Construir y levantar con optimizaciones de memoria
-            echo "Building and starting containers with Java 24 optimizations..."
-            docker-compose up -d --build
+            # Construir SIN CACHE para asegurar código fresco
+            echo "Building with fresh code (no cache)..."
+            docker-compose build --no-cache textilflow-backend
+            
+            # Levantar containers
+            echo "Starting containers..."
+            docker-compose up -d
             
             # Esperar que los servicios inicien
             echo "Waiting for services to start..."

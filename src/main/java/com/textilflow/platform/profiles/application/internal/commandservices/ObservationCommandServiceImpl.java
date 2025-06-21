@@ -1,14 +1,14 @@
 package com.textilflow.platform.profiles.application.internal.commandservices;
 
-import com.textilflow.backend.observations.domain.model.aggregates.Observation;
-import com.textilflow.backend.observations.domain.model.commands.CreateObservationCommand;
-import com.textilflow.backend.observations.domain.model.commands.UpdateObservationCommand;
-import com.textilflow.backend.observations.domain.model.commands.DeleteObservationCommand;
-import com.textilflow.backend.observations.domain.model.valueobjects.BatchCode;
-import com.textilflow.backend.observations.domain.model.valueobjects.ImageUrl;
-import com.textilflow.backend.observations.domain.model.valueobjects.ObservationStatus;
-import com.textilflow.backend.observations.domain.services.ObservationCommandService;
-import com.textilflow.backend.observations.infrastructure.persistence.repositories.ObservationRepository;
+import com.textilflow.platform.profiles.domain.model.aggregates.Observation;
+import com.textilflow.platform.profiles.domain.model.commands.CreateObservationCommand;
+import com.textilflow.platform.profiles.domain.model.commands.UpdateObservationCommand;
+import com.textilflow.platform.profiles.domain.model.commands.DeleteObservationCommand;
+import com.textilflow.platform.profiles.domain.model.valueobjects.BatchCode;
+import com.textilflow.platform.profiles.domain.model.valueobjects.ImageUrl;
+import com.textilflow.platform.profiles.domain.model.valueobjects.ObservationStatus;
+import com.textilflow.platform.profiles.domain.services.ObservationCommandService;
+import com.textilflow.platform.profiles.infrastructure.persistence.repositories.ObservationRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 

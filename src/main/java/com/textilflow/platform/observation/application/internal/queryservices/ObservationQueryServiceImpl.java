@@ -1,12 +1,12 @@
-package com.textilflow.platform.profiles.application.internal.commandservices;
+package com.textilflow.platform.observation.application.internal.queryservices;
 
-import com.textilflow.platform.profiles.domain.model.aggregates.Observation;
-import com.textilflow.platform.profiles.domain.model.queries.GetObservationByIdQuery;
-import com.textilflow.platform.profiles.domain.model.queries.GetObservationsByBatchIdQuery;
-import com.textilflow.platform.profiles.domain.model.queries.GetObservationsByBusinessmanIdQuery;
-import com.textilflow.platform.profiles.domain.model.queries.GetObservationsBySupplierIdQuery;
-import com.textilflow.platform.profiles.domain.services.ObservationQueryService;
-import com.textilflow.platform.profiles.infrastructure.persistence.jpa.repositories.ObservationRepository;
+import com.textilflow.platform.observation.domain.model.aggregates.Observation;
+import com.textilflow.platform.observation.domain.model.queries.GetObservationByIdQuery;
+import com.textilflow.platform.observation.domain.model.queries.GetObservationsByBatchIdQuery;
+import com.textilflow.platform.observation.domain.model.queries.GetObservationsByBusinessmanIdQuery;
+import com.textilflow.platform.observation.domain.model.queries.GetObservationsBySupplierIdQuery;
+import com.textilflow.platform.observation.domain.services.ObservationQueryService;
+import com.textilflow.platform.observation.infrastructure.persistence.jpa.repositories.ObservationRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

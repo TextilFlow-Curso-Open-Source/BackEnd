@@ -1,4 +1,4 @@
-package com.textilflow.platform.profiles.domain.model.events;
+package com.textilflow.platform.observation.domain.model.events;
 /**
  * Event fired when a observation is created
  */

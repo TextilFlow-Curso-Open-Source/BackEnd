@@ -1,9 +1,9 @@
-package com.textilflow.platform.profiles.domain.model.aggregates;
+package com.textilflow.platform.observation.domain.model.aggregates;
 
-import com.textilflow.platform.profiles.domain.model.commands.UpdateObservationCommand;
-import com.textilflow.platform.profiles.domain.model.valueobjects.BatchCode;
-import com.textilflow.platform.profiles.domain.model.valueobjects.ImageUrl;
-import com.textilflow.platform.profiles.domain.model.valueobjects.ObservationStatus;
+import com.textilflow.platform.observation.domain.model.commands.UpdateObservationCommand;
+import com.textilflow.platform.observation.domain.model.valueobjects.BatchCode;
+import com.textilflow.platform.observation.domain.model.valueobjects.ImageUrl;
+import com.textilflow.platform.observation.domain.model.valueobjects.ObservationStatus;
 import com.textilflow.platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import jakarta.persistence.*;
 import lombok.Getter;

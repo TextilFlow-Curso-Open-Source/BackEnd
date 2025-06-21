@@ -1,4 +1,4 @@
-package com.textilflow.platform.profiles.domain.model.commands;
+package com.textilflow.platform.observation.domain.model.commands;
 
 public record DeleteObservationCommand(
         Long observationId

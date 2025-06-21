@@ -1,6 +1,6 @@
-package com.textilflow.platform.profiles.infrastructure.persistence.jpa.repositories;
+package com.textilflow.platform.observation.infrastructure.persistence.jpa.repositories;
 
-import com.textilflow.platform.profiles.domain.model.aggregates.Observation;
+import com.textilflow.platform.observation.domain.model.aggregates.Observation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

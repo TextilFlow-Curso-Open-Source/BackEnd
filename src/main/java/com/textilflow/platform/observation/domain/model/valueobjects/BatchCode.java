@@ -1,4 +1,4 @@
-package com.textilflow.platform.profiles.domain.model.valueobjects;
+package com.textilflow.platform.observation.domain.model.valueobjects;
 
 import jakarta.persistence.Embeddable;
 import lombok.Getter;

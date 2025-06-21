@@ -1,6 +1,6 @@
-package com.textilflow.platform.profiles.domain.model.commands;
+package com.textilflow.platform.observation.interfaces.resources;
 
-public record CreateObservationCommand(
+public record CreateObservationResource(
         Long batchId,
         String batchCode,
         Long businessmanId,

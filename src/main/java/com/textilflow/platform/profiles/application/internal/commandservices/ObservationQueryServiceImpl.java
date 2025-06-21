@@ -6,7 +6,7 @@ import com.textilflow.platform.profiles.domain.model.queries.GetObservationsByBa
 import com.textilflow.platform.profiles.domain.model.queries.GetObservationsByBusinessmanIdQuery;
 import com.textilflow.platform.profiles.domain.model.queries.GetObservationsBySupplierIdQuery;
 import com.textilflow.platform.profiles.domain.services.ObservationQueryService;
-import com.textilflow.platform.profiles.infrastructure.persistence.repositories.ObservationRepository;
+import com.textilflow.platform.profiles.infrastructure.persistence.jpa.repositories.ObservationRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

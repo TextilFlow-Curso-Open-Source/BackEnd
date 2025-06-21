@@ -8,7 +8,7 @@ import com.textilflow.platform.profiles.domain.model.valueobjects.BatchCode;
 import com.textilflow.platform.profiles.domain.model.valueobjects.ImageUrl;
 import com.textilflow.platform.profiles.domain.model.valueobjects.ObservationStatus;
 import com.textilflow.platform.profiles.domain.services.ObservationCommandService;
-import com.textilflow.platform.profiles.infrastructure.persistence.repositories.ObservationRepository;
+import com.textilflow.platform.profiles.infrastructure.persistence.jpa.repositories.ObservationRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 

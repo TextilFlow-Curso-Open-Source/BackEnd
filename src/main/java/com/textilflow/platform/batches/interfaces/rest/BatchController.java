@@ -38,25 +38,37 @@ public class BatchController {
         return ResponseEntity.ok(batches);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{batchId}")
     @Operation(summary = "Get batch by ID", description = "Retrieves a specific batch by its unique identifier")
-    public ResponseEntity<?> getBatchById(@PathVariable Long id) {
-        var batch = batchQueryService.handle(new GetBatchByIdQuery(id));
+    public ResponseEntity<?> getBatchById(@PathVariable Long batchId) {
+        var batch = batchQueryService.handle(new GetBatchByIdQuery(batchId));
         return ResponseEntity.ok(batch);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{batchId}")
     @Operation(summary = "Update batch", description = "Updates an existing batch with new information")
-    public ResponseEntity<?> updateBatch(@PathVariable Long id, @RequestBody UpdateBatchCommand command) {
-        var updateCommand = new UpdateBatchCommand(id, command.productionDate(), command.qualityStatus(), command.creationDate(), command.productName(),command.quantity(),command.storageCondition(),command.unitOfMeasure());
+    public ResponseEntity<?> updateBatch(@PathVariable Long batchId, @RequestBody UpdateBatchCommand command) {
+        var updateCommand = new UpdateBatchCommand(batchId, command.code(), command.client(), command.businessmanId(), command.supplierId(), command.fabricType(), command.color(), command.quantity(), command.price(), command.observations(), command.address(), command.date(), command.status(), command.imageUrl());
         var updatedBatch = batchCommandService.handle(updateCommand);
         return ResponseEntity.ok(updatedBatch);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{batchId}")
     @Operation(summary = "Delete batch", description = "Removes a batch from the system permanently")
-    public ResponseEntity<?> deleteBatch(@PathVariable Long id) {
-        batchCommandService.handle(new DeleteBatchCommand(id));
+    public ResponseEntity<?> deleteBatch(@PathVariable Long batchId) {
+        batchCommandService.handle(new DeleteBatchCommand(batchId));
         return ResponseEntity.ok("Batch deleted successfully");
     }
+
+    @GetMapping("/test/profiles/{userId}")
+    @Operation(summary = "Test profiles ACL", description = "Test endpoint to verify profiles context facade")
+    public ResponseEntity<?> testProfilesACL(@PathVariable Long userId) {
+        try {
+            return ResponseEntity.ok("Testing userId: " + userId);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
+    }
+
+
 }

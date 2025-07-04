@@ -656,6 +656,133 @@ package textilflow-backend {
         }
     }
 
+    ' --- BOUNDED CONTEXT: OBSERVATIONS ---
+    package observations {
+        package domain {
+            package model {
+                package aggregates {
+                    class Observation <<AggregateRoot>> {
+                        - Long batchId
+                        - BatchCode batchCode
+                        - Long businessmanId
+                        - Long supplierId
+                        - String reason
+                        - ImageUrl imageUrl
+                        - ObservationStatus status
+                        + updateInformation(UpdateObservationCommand command)
+                        + getBatchCodeValue(): String
+                        + getImageUrlValue(): String
+                        + getStatusValue(): String
+                    }
+                }
+                package commands {
+                    class CreateObservationCommand <<record>> {
+                        - Long batchId
+                        - String batchCode
+                        - Long businessmanId
+                        - Long supplierId
+                        - String reason
+                        - String imageUrl
+                        - String status
+                    }
+                    class UpdateObservationCommand <<record>> {
+                        - Long observationId
+                        - String reason
+                        - String imageUrl
+                        - String status
+                    }
+                    class DeleteObservationCommand <<record>> {
+                        - Long observationId
+                    }
+                }
+                package queries {
+                    class GetObservationByIdQuery <<record>> {
+                        - Long observationId
+                    }
+                    class GetObservationsByBatchIdQuery <<record>> {
+                        - Long batchId
+                    }
+                    class GetObservationsByBusinessmanIdQuery <<record>> {
+                        - Long businessmanId
+                    }
+                    class GetObservationsBySupplierIdQuery <<record>> {
+                        - Long supplierId
+                    }
+                }
+                package valueobjects {
+                    class BatchCode <<ValueObject>> {
+                        - String code
+                        + BatchCode(String code)
+                        + getCode(): String
+                    }
+                    class ImageUrl <<ValueObject>> {
+                        - String url
+                        + ImageUrl(String url)
+                        + isEmpty(): boolean
+                        + getUrl(): String
+                    }
+                    enum ObservationStatus {
+                        PENDIENTE
+                        EN_REVISION
+                        RESUELTA
+                        RECHAZADA
+                    }
+                }
+            }
+            package services {
+                interface ObservationCommandService {
+                    + Optional<Observation> handle(CreateObservationCommand command)
+                    + Optional<Observation> handle(UpdateObservationCommand command)
+                    + void handle(DeleteObservationCommand command)
+                }
+                interface ObservationQueryService {
+                    + Optional<Observation> handle(GetObservationByIdQuery query)
+                    + List<Observation> handle(GetObservationsByBatchIdQuery query)
+                    + List<Observation> handle(GetObservationsByBusinessmanIdQuery query)
+                    + List<Observation> handle(GetObservationsBySupplierIdQuery query)
+                }
+            }
+        }
+        package application {
+            package internal {
+                package commandservices {
+                    class ObservationCommandServiceImpl {
+                        - ObservationRepository observationRepository
+                        - ApplicationEventPublisher eventPublisher
+                        + Optional<Observation> handle(CreateObservationCommand command)
+                        + Optional<Observation> handle(UpdateObservationCommand command)
+                        + void handle(DeleteObservationCommand command)
+                    }
+                }
+                package queryservices {
+                    class ObservationQueryServiceImpl {
+                        - ObservationRepository observationRepository
+                        + Optional<Observation> handle(GetObservationByIdQuery query)
+                        + List<Observation> handle(GetObservationsByBatchIdQuery query)
+                        + List<Observation> handle(GetObservationsByBusinessmanIdQuery query)
+                        + List<Observation> handle(GetObservationsBySupplierIdQuery query)
+                    }
+                }
+            }
+        }
+        package infrastructure {
+            package persistence {
+                package jpa {
+                    package repositories {
+                        interface ObservationRepository {
+                            + Optional<Observation> findById(Long id)
+                            + List<Observation> findByBatchId(Long batchId)
+                            + List<Observation> findByBusinessmanId(Long businessmanId)
+                            + List<Observation> findBySupplierId(Long supplierId)
+                            + Observation save(Observation observation)
+                            + void deleteById(Long observationId)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     ' --- SHARED KERNEL ---
     package shared {
         package application {
@@ -826,6 +953,19 @@ SupplierReviewQueryServiceImpl --> SupplierReviewRepository
 ExternalProfilesService --> ProfilesContextFacade
 SupplierReviewsController --> SupplierReviewCommandService
 SupplierReviewsController --> SupplierReviewQueryService
+
+' --- RELACIONES OBSERVATIONS ---
+Observation --|> AuditableAbstractAggregateRoot
+Observation --> BatchCode
+Observation --> ImageUrl
+Observation --> ObservationStatus
+Observation ..> CreateObservationCommand : "creates"
+Observation ..> UpdateObservationCommand : "updates"
+
+ObservationCommandServiceImpl ..|> ObservationCommandService
+ObservationCommandServiceImpl --> ObservationRepository
+ObservationQueryServiceImpl ..|> ObservationQueryService
+ObservationQueryServiceImpl --> ObservationRepository
 
 ' --- RELACIONES SHARED ---
 CloudinaryServiceImpl ..|> CloudinaryService

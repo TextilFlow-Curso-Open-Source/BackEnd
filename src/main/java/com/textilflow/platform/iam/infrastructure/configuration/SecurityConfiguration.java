@@ -49,25 +49,23 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authz -> authz
-                        // IMPORTANTE: Permitir OPTIONS para CORS preflight
+                        // Permitir OPTIONS para CORS preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Endpoints públicos - USAR /** para incluir sub-rutas
-                        .requestMatchers("/actuator/**").permitAll()
+                        // Endpoints públicos
+                        .requestMatchers("/actuator", "/actuator/**").permitAll()
                         .requestMatchers("/api/v1/authentication/**").permitAll()
-                        .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/swagger-ui.html").permitAll()
                         .requestMatchers("/webjars/**").permitAll()
                         .requestMatchers("/swagger-resources/**").permitAll()
 
-                        // Endpoints que requieren autenticación
+                        // Endpoints protegidos
                         .requestMatchers("/api/v1/users/**").authenticated()
                         .requestMatchers("/api/v1/profiles/**").authenticated()
                         .requestMatchers("/api/v1/businessmen/**").authenticated()
                         .requestMatchers("/api/v1/suppliers/**").authenticated()
 
-                        // Todo lo demás requiere autenticación
                         .anyRequest().authenticated()
                 );
 
@@ -83,7 +81,7 @@ public class SecurityConfiguration {
                 String path = request.getRequestURI();
                 String method = request.getMethod();
 
-                // No aplicar filtro JWT a estos endpoints
+                // NO aplicar filtro JWT a estos endpoints
                 return path.startsWith("/api/v1/authentication/") ||
                         path.startsWith("/actuator/") ||
                         path.startsWith("/swagger-ui/") ||
@@ -129,26 +127,11 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // Permitir todos los orígenes (para desarrollo)
         configuration.setAllowedOriginPatterns(List.of("*"));
-
-        // Permitir todos los métodos HTTP
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
-
-        // Permitir todos los headers
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-
-        // Permitir credenciales
         configuration.setAllowCredentials(true);
-
-        // Headers que el cliente puede acceder
-        configuration.setExposedHeaders(List.of("*"));
-
-        // Cache preflight por 1 hora
         configuration.setMaxAge(3600L);
-
-        // Aplicar configuración a todas las rutas
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

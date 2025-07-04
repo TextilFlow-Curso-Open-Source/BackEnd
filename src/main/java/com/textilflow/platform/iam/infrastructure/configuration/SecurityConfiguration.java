@@ -5,6 +5,7 @@ import com.textilflow.platform.iam.infrastructure.tokens.JwtTokenService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -48,19 +49,25 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authz -> authz
+                        // IMPORTANTE: Permitir OPTIONS para CORS preflight
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        .requestMatchers("/actuator", "/actuator/").permitAll()
-                        .requestMatchers("/api/v1/authentication/").permitAll()
-                        .requestMatchers("/swagger-ui/", "/v3/api-docs/").permitAll()
+                        // Endpoints públicos - USAR /** para incluir sub-rutas
+                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/api/v1/authentication/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
+                        .requestMatchers("/swagger-resources/**").permitAll()
 
+                        // Endpoints que requieren autenticación
+                        .requestMatchers("/api/v1/users/**").authenticated()
+                        .requestMatchers("/api/v1/profiles/**").authenticated()
+                        .requestMatchers("/api/v1/businessmen/**").authenticated()
+                        .requestMatchers("/api/v1/suppliers/**").authenticated()
 
-
-                        .requestMatchers("/api/v1/users/").authenticated()
-                        .requestMatchers("/api/v1/profiles/").authenticated()
-                        .requestMatchers("/api/v1/businessmen/").authenticated()
-                        .requestMatchers("/api/v1/suppliers/").authenticated()
-
-
+                        // Todo lo demás requiere autenticación
                         .anyRequest().authenticated()
                 );
 
@@ -70,6 +77,23 @@ public class SecurityConfiguration {
     @Bean
     public OncePerRequestFilter jwtAuthenticationFilter() {
         return new OncePerRequestFilter() {
+
+            @Override
+            protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+                String path = request.getRequestURI();
+                String method = request.getMethod();
+
+                // No aplicar filtro JWT a estos endpoints
+                return path.startsWith("/api/v1/authentication/") ||
+                        path.startsWith("/actuator/") ||
+                        path.startsWith("/swagger-ui/") ||
+                        path.startsWith("/v3/api-docs/") ||
+                        path.equals("/swagger-ui.html") ||
+                        path.startsWith("/webjars/") ||
+                        path.startsWith("/swagger-resources/") ||
+                        "OPTIONS".equals(method);
+            }
+
             @Override
             protected void doFilterInternal(HttpServletRequest request,
                                             HttpServletResponse response,
@@ -93,6 +117,7 @@ public class SecurityConfiguration {
                         }
                     } catch (Exception e) {
                         // Token inválido, continuar sin autenticación
+                        System.out.println("JWT Token validation failed: " + e.getMessage());
                     }
                 }
 
@@ -104,12 +129,28 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+
+        // Permitir todos los orígenes (para desarrollo)
         configuration.setAllowedOriginPatterns(List.of("*"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // Permitir todos los métodos HTTP
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
+
+        // Permitir todos los headers
         configuration.setAllowedHeaders(List.of("*"));
+
+        // Permitir credenciales
         configuration.setAllowCredentials(true);
+
+        // Headers que el cliente puede acceder
+        configuration.setExposedHeaders(List.of("*"));
+
+        // Cache preflight por 1 hora
+        configuration.setMaxAge(3600L);
+
+        // Aplicar configuración a todas las rutas
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/", configuration);
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 }

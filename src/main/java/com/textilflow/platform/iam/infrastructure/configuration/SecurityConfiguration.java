@@ -68,6 +68,16 @@ public class SecurityConfiguration {
     public OncePerRequestFilter jwtAuthenticationFilter() {
         return new OncePerRequestFilter() {
             @Override
+            protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+                String path = request.getRequestURI();
+                return path.startsWith("/api/v1/authentication/") ||
+                        path.startsWith("/actuator/") ||
+                        path.startsWith("/swagger-ui/") ||
+                        path.startsWith("/v3/api-docs/") ||
+                        "OPTIONS".equals(request.getMethod());
+            }
+
+            @Override
             protected void doFilterInternal(HttpServletRequest request,
                                             HttpServletResponse response,
                                             FilterChain filterChain) throws ServletException, IOException {
@@ -82,7 +92,6 @@ public class SecurityConfiguration {
                             String email = tokenService.getEmailFromToken(token);
 
                             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                                // Crear Authentication object
                                 UsernamePasswordAuthenticationToken auth =
                                         new UsernamePasswordAuthenticationToken(email, null, List.of());
                                 SecurityContextHolder.getContext().setAuthentication(auth);

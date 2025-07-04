@@ -5,7 +5,6 @@ import com.textilflow.platform.iam.infrastructure.tokens.JwtTokenService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -50,14 +49,18 @@ public class SecurityConfiguration {
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authz -> authz
 
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // ← AGREGAR ESTA LÍNEA
-                        .requestMatchers("/actuator", "/actuator/**").permitAll()
-                        .requestMatchers("/api/v1/authentication/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/api/v1/users/**").authenticated()
-                        .requestMatchers("/api/v1/profiles/**").authenticated()
-                        .requestMatchers("/api/v1/businessmen/**").authenticated()
-                        .requestMatchers("/api/v1/suppliers/**").authenticated()
+                        .requestMatchers("/actuator", "/actuator/").permitAll()
+                        .requestMatchers("/api/v1/authentication/").permitAll()
+                        .requestMatchers("/swagger-ui/", "/v3/api-docs/").permitAll()
+
+
+
+                        .requestMatchers("/api/v1/users/").authenticated()
+                        .requestMatchers("/api/v1/profiles/").authenticated()
+                        .requestMatchers("/api/v1/businessmen/").authenticated()
+                        .requestMatchers("/api/v1/suppliers/").authenticated()
+
+
                         .anyRequest().authenticated()
                 );
 
@@ -67,16 +70,6 @@ public class SecurityConfiguration {
     @Bean
     public OncePerRequestFilter jwtAuthenticationFilter() {
         return new OncePerRequestFilter() {
-            @Override
-            protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-                String path = request.getRequestURI();
-                return path.startsWith("/api/v1/authentication/") ||
-                        path.startsWith("/actuator/") ||
-                        path.startsWith("/swagger-ui/") ||
-                        path.startsWith("/v3/api-docs/") ||
-                        "OPTIONS".equals(request.getMethod());
-            }
-
             @Override
             protected void doFilterInternal(HttpServletRequest request,
                                             HttpServletResponse response,
@@ -92,6 +85,7 @@ public class SecurityConfiguration {
                             String email = tokenService.getEmailFromToken(token);
 
                             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                                // Crear Authentication object
                                 UsernamePasswordAuthenticationToken auth =
                                         new UsernamePasswordAuthenticationToken(email, null, List.of());
                                 SecurityContextHolder.getContext().setAuthentication(auth);
@@ -111,12 +105,11 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of("*"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // ← AGREGAR OPTIONS
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L); // ← AGREGAR CACHE PREFLIGHT
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/", configuration);
         return source;
     }
 }

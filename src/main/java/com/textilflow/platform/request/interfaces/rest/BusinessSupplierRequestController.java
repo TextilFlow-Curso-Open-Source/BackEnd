@@ -6,6 +6,9 @@ import com.textilflow.platform.request.domain.services.RequestCommandService;
 import com.textilflow.platform.request.domain.services.RequestQueryService;
 import com.textilflow.platform.request.interfaces.rest.resources.*;
 import com.textilflow.platform.request.interfaces.rest.transform.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +31,11 @@ public class BusinessSupplierRequestController {
     }
 
     @PostMapping
+    @Operation(summary = "Create new request", description = "Creates a new business-supplier request.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Request created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input")
+    })
     public ResponseEntity<BusinessSupplierRequestResource> createRequest(@RequestBody CreateBusinessSupplierRequestResource resource) {
         var command = CreateBusinessSupplierRequestCommandFromResourceAssembler.toCommandFromResource(resource);
         var requestId = requestCommandService.handle(command);
@@ -48,6 +56,11 @@ public class BusinessSupplierRequestController {
     }
 
     @GetMapping("/{requestId}")
+    @Operation(summary = "Get request by ID", description = "Retrieves a business-supplier request by its ID.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Request found"),
+            @ApiResponse(responseCode = "404", description = "Request not found")
+    })
     public ResponseEntity<BusinessSupplierRequestResource> getRequestById(@PathVariable Long requestId) {
         var query = new GetRequestByIdQuery(requestId);
         var request = requestQueryService.handle(query);
@@ -61,6 +74,8 @@ public class BusinessSupplierRequestController {
     }
 
     @GetMapping
+    @Operation(summary = "Get all requests", description = "Retrieves all business-supplier requests.")
+    @ApiResponse(responseCode = "200", description = "List of requests retrieved successfully")
     public ResponseEntity<List<BusinessSupplierRequestResource>> getAllRequests() {
         var query = new GetAllRequestsQuery();
         var requests = requestQueryService.handle(query);
@@ -73,6 +88,8 @@ public class BusinessSupplierRequestController {
     }
 
     @GetMapping("/businessman/{businessmanId}")
+    @Operation(summary = "Get requests by businessman ID", description = "Retrieves requests made by a specific businessman.")
+    @ApiResponse(responseCode = "200", description = "List of requests found for the businessman")
     public ResponseEntity<List<BusinessSupplierRequestResource>> getRequestsByBusinessmanId(@PathVariable Long businessmanId) {
         var query = new GetRequestsByBusinessmanIdQuery(businessmanId);
         var requests = requestQueryService.handle(query);
@@ -85,6 +102,8 @@ public class BusinessSupplierRequestController {
     }
 
     @GetMapping("/supplier/{supplierId}")
+    @Operation(summary = "Get requests by supplier ID", description = "Retrieves requests made to a specific supplier.")
+    @ApiResponse(responseCode = "200", description = "List of requests found for the supplier")
     public ResponseEntity<List<BusinessSupplierRequestResource>> getRequestsBySupplierId(@PathVariable Long supplierId) {
         var query = new GetRequestsBySupplierIdQuery(supplierId);
         var requests = requestQueryService.handle(query);
@@ -97,6 +116,11 @@ public class BusinessSupplierRequestController {
     }
 
     @PutMapping("/{requestId}/status")
+    @Operation(summary = "Update request status", description = "Updates the status of an existing request.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Request status updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Request not found")
+    })
     public ResponseEntity<BusinessSupplierRequestResource> updateRequestStatus(
             @PathVariable Long requestId,
             @RequestBody UpdateRequestStatusResource resource) {
@@ -113,6 +137,11 @@ public class BusinessSupplierRequestController {
     }
 
     @PutMapping("/{requestId}/details")
+    @Operation(summary = "Update request details", description = "Updates the details (not status) of a request.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Request details updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Request not found")
+    })
     public ResponseEntity<BusinessSupplierRequestResource> updateRequestDetails(
             @PathVariable Long requestId,
             @RequestBody UpdateRequestDetailsResource resource) {
@@ -129,6 +158,11 @@ public class BusinessSupplierRequestController {
     }
 
     @DeleteMapping("/{requestId}")
+    @Operation(summary = "Delete request", description = "Deletes a request by its ID.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Request deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Request not found")
+    })
     public ResponseEntity<Void> deleteRequest(@PathVariable Long requestId) {
         var command = new DeleteRequestCommand(requestId);
         requestCommandService.handle(command);

@@ -7,7 +7,7 @@ import com.textilflow.platform.payment.application.internal.outboundservices.acl
 import org.springframework.stereotype.Service;
 
 /**
- * Payment command service implementation
+ * Payment commands service implementation
  * Orchestrates payment operations and coordinates with external services
  */
 @Service

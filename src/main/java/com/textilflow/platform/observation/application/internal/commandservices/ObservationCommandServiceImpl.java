@@ -4,13 +4,16 @@ import com.textilflow.platform.observation.domain.model.aggregates.Observation;
 import com.textilflow.platform.observation.domain.model.commands.CreateObservationCommand;
 import com.textilflow.platform.observation.domain.model.commands.UpdateObservationCommand;
 import com.textilflow.platform.observation.domain.model.commands.DeleteObservationCommand;
+import com.textilflow.platform.observation.domain.model.commands.UploadObservationImageCommand;
+import com.textilflow.platform.observation.domain.model.commands.DeleteObservationImageCommand;
 import com.textilflow.platform.observation.domain.model.valueobjects.BatchCode;
 import com.textilflow.platform.observation.domain.model.valueobjects.ImageUrl;
 import com.textilflow.platform.observation.domain.model.valueobjects.ObservationStatus;
 import com.textilflow.platform.observation.domain.services.ObservationCommandService;
+import com.textilflow.platform.observation.domain.services.ObservationImageService;
 import com.textilflow.platform.observation.infrastructure.persistence.jpa.repositories.ObservationRepository;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -18,45 +21,95 @@ import java.util.Optional;
 public class ObservationCommandServiceImpl implements ObservationCommandService {
 
     private final ObservationRepository observationRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final ObservationImageService observationImageService;
 
     public ObservationCommandServiceImpl(ObservationRepository observationRepository,
-                                         ApplicationEventPublisher eventPublisher) {
+                                         ObservationImageService observationImageService) {
         this.observationRepository = observationRepository;
-        this.eventPublisher = eventPublisher;
+        this.observationImageService = observationImageService;
     }
 
     @Override
+    @Transactional
     public Optional<Observation> handle(CreateObservationCommand command) {
-        try {
-            var observation = new Observation(
-                    command.batchId(),
-                    new BatchCode(command.batchCode()),
-                    command.businessmanId(),
-                    command.supplierId(),
-                    command.reason(),
-                    new ImageUrl(command.imageUrl()),
-                    ObservationStatus.valueOf(command.status().toUpperCase())
-            );
+        var batchCode = new BatchCode(command.batchCode());
+        var imageUrl = command.imageUrl() != null ? new ImageUrl(command.imageUrl()) : null;
+        var status = ObservationStatus.valueOf(command.status().toUpperCase());
 
-            var savedObservation = observationRepository.save(observation);
-            return Optional.of(savedObservation);
-        } catch (Exception e) {
-            return Optional.empty();
+        var observation = new Observation(
+                command.batchId(),
+                batchCode,
+                command.businessmanId(),
+                command.supplierId(),
+                command.reason(),
+                imageUrl,
+                status
+        );
+
+        return Optional.of(observationRepository.save(observation));
+    }
+
+    @Override
+    @Transactional
+    public Optional<Observation> handle(UpdateObservationCommand command) {
+        var observation = observationRepository.findById(command.observationId());
+        if (observation.isPresent()) {
+            observation.get().updateInformation(command);
+            return Optional.of(observationRepository.save(observation.get()));
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    @Transactional
+    public void handle(DeleteObservationCommand command) {
+        var observation = observationRepository.findById(command.observationId());
+        if (observation.isPresent()) {
+            // Delete image from cloud storage if exists
+            String imageUrl = observation.get().getImageUrlValue();
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                observationImageService.deleteImage(imageUrl);
+            }
+            observationRepository.deleteById(command.observationId());
         }
     }
 
     @Override
-    public Optional<Observation> handle(UpdateObservationCommand command) {
-        return observationRepository.findById(command.observationId())
-                .map(observation -> {
-                    observation.updateInformation(command);
-                    return observationRepository.save(observation);
-                });
+    @Transactional
+    public Optional<Observation> handle(UploadObservationImageCommand command) {
+        var observation = observationRepository.findById(command.observationId());
+        if (observation.isPresent()) {
+            try {
+                // Delete existing image if present
+                String existingImageUrl = observation.get().getImageUrlValue();
+                if (existingImageUrl != null && !existingImageUrl.isEmpty()) {
+                    observationImageService.deleteImage(existingImageUrl);
+                }
+
+                // Upload new image
+                String imageUrl = observationImageService.uploadImage(command.observationId(), command.file());
+                observation.get().updateImage(imageUrl);
+
+                return Optional.of(observationRepository.save(observation.get()));
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to upload observation image: " + e.getMessage(), e);
+            }
+        }
+        return Optional.empty();
     }
 
     @Override
-    public void handle(DeleteObservationCommand command) {
-        observationRepository.deleteById(command.observationId());
+    @Transactional
+    public Optional<Observation> handle(DeleteObservationImageCommand command) {
+        var observation = observationRepository.findById(command.observationId());
+        if (observation.isPresent()) {
+            String imageUrl = observation.get().getImageUrlValue();
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                observationImageService.deleteImage(imageUrl);
+                observation.get().deleteImage();
+                return Optional.of(observationRepository.save(observation.get()));
+            }
+        }
+        return Optional.empty();
     }
 }

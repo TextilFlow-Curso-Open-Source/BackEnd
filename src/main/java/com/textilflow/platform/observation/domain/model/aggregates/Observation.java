@@ -63,6 +63,15 @@ public class Observation extends AuditableAbstractAggregateRoot<Observation> {
         }
     }
 
+    // ✅ AGREGAR MÉTODOS PARA MANEJO DE IMÁGENES
+    public void updateImage(String imageUrl) {
+        this.imageUrl = new ImageUrl(imageUrl);
+    }
+
+    public void deleteImage() {
+        this.imageUrl = null;
+    }
+
     public String getBatchCodeValue() {
         return this.batchCode != null ? this.batchCode.getCode() : null;
     }

@@ -25,8 +25,30 @@ public class StripePaymentService {
      */
     @PostConstruct
     public void init() {
-        Stripe.apiKey = stripeSecretKey;
-        System.out.println("Stripe initialized with secret key");
+        System.out.println("=== STRIPE INITIALIZATION DEBUG ===");
+        System.out.println("Raw stripeSecretKey value: " + stripeSecretKey);
+        System.out.println("Stripe secret key present: " + (stripeSecretKey != null && !stripeSecretKey.isEmpty()));
+        System.out.println("Stripe secret key length: " + (stripeSecretKey != null ? stripeSecretKey.length() : 0));
+        System.out.println("Stripe secret key starts with 'sk_': " + (stripeSecretKey != null && stripeSecretKey.startsWith("sk_")));
+
+        if (stripeSecretKey == null || stripeSecretKey.isEmpty()) {
+            System.err.println("❌ STRIPE SECRET KEY IS NULL OR EMPTY!");
+            return;
+        }
+
+        if (stripeSecretKey.equals("your_stripe_secret_key")) {
+            System.err.println("❌ STRIPE SECRET KEY IS STILL THE PLACEHOLDER VALUE!");
+            return;
+        }
+
+        try {
+            Stripe.apiKey = stripeSecretKey;
+            System.out.println("✅ Stripe initialized successfully");
+            System.out.println("Stripe.apiKey set to: " + (Stripe.apiKey != null ? Stripe.apiKey.substring(0, 10) + "..." : "null"));
+        } catch (Exception e) {
+            System.err.println("❌ Error setting Stripe API key: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -34,17 +56,22 @@ public class StripePaymentService {
      * Returns client secret for frontend payment completion
      */
     public String createPaymentIntent(Long amountInCents, Long userId, String subscriptionPlan) {
-        System.out.println("=== Creating Stripe Payment Intent ===");
+        System.out.println("=== STRIPE PAYMENT INTENT CREATION DEBUG ===");
         System.out.println("Amount in cents: " + amountInCents);
-        System.out.println("Currency: USD");
+        System.out.println("User ID: " + userId);
+        System.out.println("Subscription plan: " + subscriptionPlan);
+        System.out.println("Current Stripe.apiKey: " + (Stripe.apiKey != null ? Stripe.apiKey.substring(0, 10) + "..." : "null"));
 
         try {
+            System.out.println("🔄 Creating metadata...");
             // Create metadata for tracking
             Map<String, String> metadata = new HashMap<>();
             metadata.put("user_id", userId.toString());
             metadata.put("subscription_plan", subscriptionPlan);
             metadata.put("context", "subscription_upgrade");
+            System.out.println("✅ Metadata created: " + metadata);
 
+            System.out.println("🔄 Building payment intent parameters...");
             // Build payment intent parameters
             PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
                     .setAmount(amountInCents)
@@ -56,9 +83,12 @@ public class StripePaymentService {
                                     .build()
                     )
                     .build();
+            System.out.println("✅ Payment intent parameters built successfully");
 
+            System.out.println("🔄 Calling Stripe API...");
             // Create payment intent via Stripe API
             PaymentIntent intent = PaymentIntent.create(params);
+            System.out.println("✅ Stripe API call successful!");
 
             System.out.println("Payment Intent created successfully");
             System.out.println("Payment Intent ID: " + intent.getId());
@@ -67,13 +97,19 @@ public class StripePaymentService {
             return intent.getClientSecret();
 
         } catch (StripeException e) {
-            System.err.println("Stripe error: " + e.getMessage());
+            System.err.println("❌ STRIPE ERROR OCCURRED:");
+            System.err.println("Error message: " + e.getMessage());
             System.err.println("Error code: " + e.getCode());
-            System.err.println("Error type: " + e.getCode());
-            throw new RuntimeException("Failed to create payment intent: " + e.getMessage(), e);
+            System.err.println("HTTP status: " + e.getStatusCode());
+            System.err.println("Request ID: " + e.getRequestId());
+            e.printStackTrace();
+            throw new RuntimeException("Stripe API error: " + e.getMessage(), e);
         } catch (Exception e) {
-            System.err.println("Unexpected error creating payment intent: " + e.getMessage());
-            throw new RuntimeException("Unexpected error during payment intent creation", e);
+            System.err.println("❌ UNEXPECTED ERROR:");
+            System.err.println("Error class: " + e.getClass().getName());
+            System.err.println("Error message: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Unexpected error during payment intent creation: " + e.getMessage(), e);
         }
     }
 

@@ -21,6 +21,8 @@ public class CreateConfigurationCommandFromResourceAssembler {
                 resource.subscriptionPlan() != null ?
                         SubscriptionPlan.fromString(resource.subscriptionPlan()) :
                         SubscriptionPlan.BASIC
+                // NOTE: subscriptionStatus always starts as PENDING by default in the entity constructor
+                // We don't pass it here because new configurations should always be PENDING
         );
     }
 }

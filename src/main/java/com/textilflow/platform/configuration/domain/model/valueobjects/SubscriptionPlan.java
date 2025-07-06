@@ -16,10 +16,17 @@ public enum SubscriptionPlan {
     }
 
     public static SubscriptionPlan fromString(String value) {
+        if (value == null || value.isBlank()) {
+            return BASIC; // default
+        }
+
+        // Make case-insensitive: "BASIC", "Basic", "basic" all work
+        String normalizedValue = value.toLowerCase();
+
         return Arrays.stream(values())
-                .filter(plan -> plan.value.equals(value))
+                .filter(plan -> plan.value.equals(normalizedValue))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid subscription plan: " + value));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid subscription plan: " + value + ". Valid values: basic, corporate"));
     }
 
     public String getValue() {

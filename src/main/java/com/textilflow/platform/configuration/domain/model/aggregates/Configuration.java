@@ -32,6 +32,11 @@ public class Configuration extends AuditableAbstractAggregateRoot<Configuration>
     @Column(name = "subscription_plan")
     private SubscriptionPlan subscriptionPlan;
 
+    // *** NUEVO CAMPO ***
+    @Enumerated(EnumType.STRING)
+    @Column(name = "subscription_status", nullable = false)
+    private SubscriptionStatus subscriptionStatus;
+
     @Column(name = "subscription_start_date")
     private java.time.LocalDateTime subscriptionStartDate;
 
@@ -44,6 +49,7 @@ public class Configuration extends AuditableAbstractAggregateRoot<Configuration>
         this.language = language;
         this.viewMode = viewMode;
         this.subscriptionPlan = subscriptionPlan;
+        this.subscriptionStatus = SubscriptionStatus.PENDING; // *** NUEVO: Siempre inicia en PENDING ***
         this.subscriptionStartDate = java.time.LocalDateTime.now();
     }
 
@@ -64,6 +70,25 @@ public class Configuration extends AuditableAbstractAggregateRoot<Configuration>
     }
 
     /**
+     * *** NUEVO MÉTODO: Activar suscripción después del pago ***
+     */
+    public void activateSubscription(SubscriptionPlan subscriptionPlan) {
+        this.subscriptionPlan = subscriptionPlan;
+        this.subscriptionStatus = SubscriptionStatus.ACTIVE;
+        this.subscriptionStartDate = java.time.LocalDateTime.now();
+    }
+
+    /**
+     * *** NUEVO MÉTODO: Cambiar solo el status de suscripción ***
+     */
+    public void updateSubscriptionStatus(SubscriptionStatus subscriptionStatus) {
+        this.subscriptionStatus = subscriptionStatus;
+        if (subscriptionStatus == SubscriptionStatus.ACTIVE) {
+            this.subscriptionStartDate = java.time.LocalDateTime.now();
+        }
+    }
+
+    /**
      * Check if subscription is expired (more than 30 days for CORPORATE)
      */
     public boolean isSubscriptionExpired() {
@@ -79,7 +104,15 @@ public class Configuration extends AuditableAbstractAggregateRoot<Configuration>
     public void checkAndDowngradeSubscription() {
         if (isSubscriptionExpired()) {
             this.subscriptionPlan = SubscriptionPlan.BASIC;
+            this.subscriptionStatus = SubscriptionStatus.PENDING; // *** NUEVO: También cambiar status ***
         }
+    }
+
+    /**
+     * *** NUEVO MÉTODO: Verificar si necesita pago ***
+     */
+    public boolean requiresPayment() {
+        return this.subscriptionStatus == SubscriptionStatus.PENDING;
     }
 
     /**

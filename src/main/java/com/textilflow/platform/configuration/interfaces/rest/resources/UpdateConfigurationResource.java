@@ -6,6 +6,7 @@ package com.textilflow.platform.configuration.interfaces.rest.resources;
 public record UpdateConfigurationResource(
         String language,
         String viewMode,
-        String subscriptionPlan
-) {
+        String subscriptionPlan,
+        String subscriptionStatus
+){
 }

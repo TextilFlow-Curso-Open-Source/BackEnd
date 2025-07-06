@@ -21,6 +21,7 @@ public class ConfigurationResourceFromEntityAssembler {
                 entity.getLanguage().getValue(),
                 entity.getViewMode().getValue(),
                 entity.getSubscriptionPlan() != null ? entity.getSubscriptionPlan().getValue() : null,
+                entity.getSubscriptionStatus() != null ? entity.getSubscriptionStatus().name() : "PENDING", // *** NUEVO CAMPO ***
                 entity.getSubscriptionStartDate(),
                 entity.getCreatedAt() != null ?
                         entity.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime() : null,

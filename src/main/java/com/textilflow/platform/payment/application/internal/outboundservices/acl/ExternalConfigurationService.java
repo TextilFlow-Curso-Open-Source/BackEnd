@@ -2,12 +2,10 @@ package com.textilflow.platform.payment.application.internal.outboundservices.ac
 
 import com.textilflow.platform.configuration.interfaces.acl.ConfigurationContextFacade;
 import com.textilflow.platform.configuration.domain.services.ConfigurationCommandService;
-import com.textilflow.platform.configuration.domain.model.commands.UpdateConfigurationCommand;
+import com.textilflow.platform.configuration.domain.model.commands.ActivateSubscriptionCommand;
 import com.textilflow.platform.configuration.domain.model.queries.GetConfigurationByUserIdQuery;
 import com.textilflow.platform.configuration.domain.services.ConfigurationQueryService;
 import com.textilflow.platform.configuration.domain.model.valueobjects.SubscriptionPlan;
-import com.textilflow.platform.configuration.domain.model.valueobjects.Language;
-import com.textilflow.platform.configuration.domain.model.valueobjects.ViewMode;
 import org.springframework.stereotype.Service;
 
 /**
@@ -37,37 +35,36 @@ public class ExternalConfigurationService {
     }
 
     /**
-     * Update user's subscription plan after successful payment
+     * *** UPDATED: Activate subscription after successful payment ***
+     * Uses the new ActivateSubscriptionCommand for proper payment flow
      */
     public void updateSubscriptionPlan(Long userId, String subscriptionPlan) {
-        System.out.println("=== Updating subscription via Configuration context ===");
+        System.out.println("=== Activating subscription via Configuration context ===");
+        System.out.println("User ID: " + userId);
+        System.out.println("New subscription plan: " + subscriptionPlan);
 
-        // Get current configuration
-        var configQuery = new GetConfigurationByUserIdQuery(userId);
-        var configOpt = configurationQueryService.handle(configQuery);
+        try {
+            // Use the new ActivateSubscriptionCommand for payment success
+            var activateCommand = new ActivateSubscriptionCommand(
+                    userId,
+                    SubscriptionPlan.fromString(subscriptionPlan)
+            );
 
-        if (configOpt.isEmpty()) {
-            throw new IllegalArgumentException("Configuration not found for user: " + userId);
+            // Execute activation (sets plan + status = ACTIVE)
+            var result = configurationCommandService.handle(activateCommand);
+
+            if (result.isEmpty()) {
+                throw new RuntimeException("Failed to activate subscription for user: " + userId);
+            }
+
+            System.out.println("✅ Subscription activated successfully!");
+            System.out.println("   Plan: " + subscriptionPlan);
+            System.out.println("   Status: ACTIVE");
+
+        } catch (Exception e) {
+            System.err.println("❌ Error activating subscription: " + e.getMessage());
+            throw new RuntimeException("Failed to activate subscription for user: " + userId, e);
         }
-
-        var config = configOpt.get();
-
-        // Create update command with current values + new subscription plan
-        var updateCommand = new UpdateConfigurationCommand(
-                config.getId(),
-                config.getLanguage(),           // Keep current language
-                config.getViewMode(),           // Keep current view mode
-                SubscriptionPlan.fromString(subscriptionPlan)  // Update subscription plan
-        );
-
-        // Execute update
-        var result = configurationCommandService.handle(updateCommand);
-
-        if (result.isEmpty()) {
-            throw new RuntimeException("Failed to update subscription plan for user: " + userId);
-        }
-
-        System.out.println("Subscription plan updated successfully to: " + subscriptionPlan);
     }
 
     /**
@@ -82,5 +79,19 @@ public class ExternalConfigurationService {
      */
     public boolean hasActiveSubscription(Long userId) {
         return configurationContextFacade.hasActiveSubscription(userId);
+    }
+
+    /**
+     * *** NEW: Check if user requires payment ***
+     */
+    public boolean requiresPayment(Long userId) {
+        return configurationContextFacade.requiresPayment(userId);
+    }
+
+    /**
+     * *** NEW: Get subscription status ***
+     */
+    public String getSubscriptionStatus(Long userId) {
+        return configurationContextFacade.getSubscriptionStatus(userId);
     }
 }

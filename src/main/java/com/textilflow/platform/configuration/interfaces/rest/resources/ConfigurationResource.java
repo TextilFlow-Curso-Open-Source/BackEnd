@@ -11,6 +11,7 @@ public record ConfigurationResource(
         String language,
         String viewMode,
         String subscriptionPlan,
+        String subscriptionStatus,
         LocalDateTime subscriptionStartDate,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

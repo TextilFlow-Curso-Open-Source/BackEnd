@@ -2,6 +2,7 @@ package com.textilflow.platform.configuration.application.acl;
 
 import com.textilflow.platform.configuration.domain.model.queries.GetConfigurationByUserIdQuery;
 import com.textilflow.platform.configuration.domain.services.ConfigurationQueryService;
+import com.textilflow.platform.configuration.domain.model.valueobjects.SubscriptionStatus;
 import com.textilflow.platform.configuration.interfaces.acl.ConfigurationContextFacade;
 import org.springframework.stereotype.Service;
 
@@ -48,6 +49,37 @@ public class ConfigurationContextFacadeImpl implements ConfigurationContextFacad
         }
 
         var config = configuration.get();
-        return !config.isSubscriptionExpired();
+        // Updated logic: check both subscription status and expiration
+        return config.getSubscriptionStatus() == SubscriptionStatus.ACTIVE && !config.isSubscriptionExpired();
+    }
+
+    // *** NEW METHODS FOR SUBSCRIPTION STATUS ***
+
+    @Override
+    public String getSubscriptionStatus(Long userId) {
+        var configuration = configurationQueryService.handle(new GetConfigurationByUserIdQuery(userId));
+        return configuration.map(config -> config.getSubscriptionStatus().getValue()).orElse("pending");
+    }
+
+    @Override
+    public boolean requiresPayment(Long userId) {
+        var configuration = configurationQueryService.handle(new GetConfigurationByUserIdQuery(userId));
+        if (configuration.isEmpty()) {
+            return true; // No configuration means needs to register and pay
+        }
+
+        var config = configuration.get();
+        return config.requiresPayment(); // Uses the method we added to Configuration entity
+    }
+
+    @Override
+    public boolean isSubscriptionExpired(Long userId) {
+        var configuration = configurationQueryService.handle(new GetConfigurationByUserIdQuery(userId));
+        if (configuration.isEmpty()) {
+            return false; // No subscription to expire
+        }
+
+        var config = configuration.get();
+        return config.isSubscriptionExpired();
     }
 }

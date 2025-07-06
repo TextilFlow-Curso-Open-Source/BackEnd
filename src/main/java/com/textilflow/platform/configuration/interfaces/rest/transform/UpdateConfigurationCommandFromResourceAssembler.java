@@ -16,11 +16,12 @@ public class UpdateConfigurationCommandFromResourceAssembler {
                                                                    UpdateConfigurationResource resource) {
         return new UpdateConfigurationCommand(
                 configurationId,
-                Language.fromString(resource.language()),
-                ViewMode.fromString(resource.viewMode()),
+                resource.language() != null ? Language.fromString(resource.language()) : null,
+                resource.viewMode() != null ? ViewMode.fromString(resource.viewMode()) : null,
                 resource.subscriptionPlan() != null ?
-                        SubscriptionPlan.fromString(resource.subscriptionPlan()) :
-                        null
+                        SubscriptionPlan.fromString(resource.subscriptionPlan()) : null,
+                resource.subscriptionStatus() != null ?        // *** NUEVO CAMPO ***
+                        SubscriptionStatus.valueOf(resource.subscriptionStatus().toUpperCase()) : null
         );
     }
 }

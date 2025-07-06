@@ -8,6 +8,7 @@ public record ConfigurationCreatedEvent(
         Long userId,
         String language,
         String viewMode,
-        String subscriptionPlan
+        String subscriptionPlan,
+        String subscriptionStatus
 ) {
 }

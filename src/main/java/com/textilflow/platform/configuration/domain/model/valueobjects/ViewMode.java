@@ -17,10 +17,17 @@ public enum ViewMode {
     }
 
     public static ViewMode fromString(String value) {
+        if (value == null || value.isBlank()) {
+            return AUTO; // default
+        }
+
+        // Make case-insensitive: "DARK", "Dark", "dark" all work
+        String normalizedValue = value.toLowerCase();
+
         return Arrays.stream(values())
-                .filter(mode -> mode.value.equals(value))
+                .filter(mode -> mode.value.equals(normalizedValue))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid view mode: " + value));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid view mode: " + value + ". Valid values: light, dark, auto"));
     }
 
     public String getValue() {

@@ -16,10 +16,17 @@ public enum Language {
     }
 
     public static Language fromString(String value) {
+        if (value == null || value.isBlank()) {
+            return ES; // default
+        }
+
+        // Make case-insensitive: "ES" or "es" both work
+        String normalizedValue = value.toLowerCase();
+
         return Arrays.stream(values())
-                .filter(lang -> lang.value.equals(value))
+                .filter(lang -> lang.value.equals(normalizedValue))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid language: " + value));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid language: " + value + ". Valid values: es, en"));
     }
 
     public String getValue() {

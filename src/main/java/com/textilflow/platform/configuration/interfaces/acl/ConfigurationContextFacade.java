@@ -30,4 +30,21 @@ public interface ConfigurationContextFacade {
      * Check if user has active subscription
      */
     boolean hasActiveSubscription(Long userId);
+
+    // *** NUEVOS MÉTODOS PARA SUBSCRIPTION STATUS ***
+
+    /**
+     * Get user subscription status
+     */
+    String getSubscriptionStatus(Long userId);
+
+    /**
+     * Check if user requires payment (status is PENDING)
+     */
+    boolean requiresPayment(Long userId);
+
+    /**
+     * Check if subscription is expired
+     */
+    boolean isSubscriptionExpired(Long userId);
 }

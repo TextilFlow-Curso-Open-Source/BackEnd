@@ -27,10 +27,8 @@ public class Batch extends AuditableAbstractAggregateRoot<Batch> {
     
     @Enumerated(EnumType.STRING)
     private BatchStatus status;
-    
+
     private String imageUrl;
-
-
 
 
     public Batch() {
@@ -44,7 +42,7 @@ public class Batch extends AuditableAbstractAggregateRoot<Batch> {
         this.address = Strings.EMPTY;
         this.date = LocalDate.now();
         this.status = BatchStatus.PENDIENTE;
-        this.imageUrl = Strings.EMPTY;
+        this.imageUrl = null;
     }
 
     public Batch updateInformation(String code, String client, Long businessmanId, Long supplierId, 

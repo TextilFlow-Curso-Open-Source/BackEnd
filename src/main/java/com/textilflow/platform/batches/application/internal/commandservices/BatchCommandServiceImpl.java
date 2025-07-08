@@ -4,6 +4,8 @@ import com.textilflow.platform.batches.domain.model.aggregates.Batch;
 import com.textilflow.platform.batches.domain.model.commands.CreateBatchCommand;
 import com.textilflow.platform.batches.domain.model.commands.DeleteBatchCommand;
 import com.textilflow.platform.batches.domain.model.commands.UpdateBatchCommand;
+import com.textilflow.platform.batches.domain.model.commands.UpdateBatchImageCommand;
+import com.textilflow.platform.batches.domain.model.commands.DeleteBatchImageCommand;
 import com.textilflow.platform.batches.domain.model.events.BatchCreatedEvent;
 import com.textilflow.platform.batches.domain.model.events.BatchUpdatedEvent;
 import com.textilflow.platform.batches.domain.services.BatchCommandService;
@@ -152,6 +154,60 @@ public class BatchCommandServiceImpl implements BatchCommandService {
         batchRepository.deleteById(command.batchId());
     }
 
+    @Override
+    public Optional<Batch> handle(UpdateBatchImageCommand command) {
+        var batch = batchRepository.findById(command.batchId());
+        if (batch.isEmpty()) {
+            throw new RuntimeException("Batch not found");
+        }
 
+        var currentBatch = batch.get();
+        currentBatch.updateInformation(
+                currentBatch.getCode(),
+                currentBatch.getClient(),
+                currentBatch.getBusinessmanId(),
+                currentBatch.getSupplierId(),
+                currentBatch.getFabricType(),
+                currentBatch.getColor(),
+                currentBatch.getQuantity(),
+                currentBatch.getPrice(),
+                currentBatch.getObservations(),
+                currentBatch.getAddress(),
+                currentBatch.getDate(),
+                currentBatch.getStatus(),
+                command.imageUrl()
+        );
+
+        var updatedBatch = batchRepository.save(currentBatch);
+        return Optional.of(updatedBatch);
+    }
+
+    @Override
+    public Optional<Batch> handle(DeleteBatchImageCommand command) {
+        var batch = batchRepository.findById(command.batchId());
+        if (batch.isEmpty()) {
+            throw new RuntimeException("Batch not found");
+        }
+
+        var currentBatch = batch.get();
+        currentBatch.updateInformation(
+                currentBatch.getCode(),
+                currentBatch.getClient(),
+                currentBatch.getBusinessmanId(),
+                currentBatch.getSupplierId(),
+                currentBatch.getFabricType(),
+                currentBatch.getColor(),
+                currentBatch.getQuantity(),
+                currentBatch.getPrice(),
+                currentBatch.getObservations(),
+                currentBatch.getAddress(),
+                currentBatch.getDate(),
+                currentBatch.getStatus(),
+                ""
+        );
+
+        var updatedBatch = batchRepository.save(currentBatch);
+        return Optional.of(updatedBatch);
+    }
 
 }

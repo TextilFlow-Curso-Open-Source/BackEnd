@@ -41,7 +41,24 @@ public class EmailServiceImpl implements EmailService {
             throw new RuntimeException("Error sending welcome email: " + e.getMessage(), e);
         }
     }
+    @Override
+    public void sendPasswordResetEmail(String toEmail, String userName, String resetLink) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Restablece tu contraseña - TextilFlow 🔐");
+
+            String htmlContent = buildPasswordResetEmailTemplate(userName, resetLink, toEmail);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Error sending password reset email: " + e.getMessage(), e);
+        }
+    }
     private String buildWelcomeEmailTemplate(String userName, String roleText, String roleIcon, String toEmail) {
         return String.format("""
             <!DOCTYPE html>
@@ -285,5 +302,66 @@ public class EmailServiceImpl implements EmailService {
             </body>
             </html>
             """, userName, roleIcon, roleText, roleIcon, toEmail);
+    }
+    private String buildPasswordResetEmailTemplate(String userName, String resetLink, String toEmail) {
+        return String.format("""
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Restablece tu contraseña - TextilFlow</title>
+            <style>
+                /* Mismo CSS que el welcome email */
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: 'Arial', sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; }
+                .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); overflow: hidden; }
+                .header { background: linear-gradient(135deg, #866C52 0%%, #6e573f 100%%); color: white; text-align: center; padding: 40px 20px; }
+                .header h1 { font-size: 32px; margin-bottom: 10px; font-weight: bold; }
+                .textile-icon { font-size: 48px; margin-bottom: 20px; display: block; }
+                .content { padding: 40px 30px; }
+                .reset-section { text-align: center; margin-bottom: 30px; }
+                .reset-section h2 { color: #866C52; font-size: 28px; margin-bottom: 15px; }
+                .security-info { background-color: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 20px; margin: 25px 0; border-radius: 8px; }
+                .cta-button { display: inline-block; background: linear-gradient(135deg, #866C52 0%%, #6e573f 100%%); color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+                .footer { background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #eee; }
+                .footer p { color: #666; font-size: 14px; margin-bottom: 10px; }
+            </style>
+        </head>
+        <body>
+            <div class="email-container">
+                <div class="header">
+                    <span class="textile-icon">🔐</span>
+                    <h1>TextilFlow Platform</h1>
+                </div>
+                <div class="content">
+                    <div class="reset-section">
+                        <h2>¡Hola, %s!</h2>
+                        <p style="font-size: 18px; color: #666; margin-bottom: 20px;">
+                            Recibimos una solicitud para restablecer tu contraseña
+                        </p>
+                    </div>
+                    <div class="security-info">
+                        <p><strong>⏰ Este enlace expira en 60 minutos</strong></p>
+                        <p style="margin-top: 10px; color: #666;">
+                            Si no solicitaste este cambio, puedes ignorar este email.
+                        </p>
+                    </div>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="%s" class="cta-button">Restablecer Contraseña 🔑</a>
+                    </div>
+                    <p style="color: #666; font-size: 14px; text-align: center;">
+                        Si el botón no funciona, copia y pega este enlace:<br>
+                        <a href="%s" style="color: #866C52; word-break: break-all;">%s</a>
+                    </p>
+                </div>
+                <div class="footer">
+                    <p><strong>TextilFlow Platform - Seguridad</strong></p>
+                    <p>Este correo fue enviado a %s</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """, userName, resetLink, resetLink, resetLink, toEmail);
     }
 }

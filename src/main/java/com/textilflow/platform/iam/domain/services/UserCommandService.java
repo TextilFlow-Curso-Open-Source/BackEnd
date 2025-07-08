@@ -1,10 +1,7 @@
 package com.textilflow.platform.iam.domain.services;
 
 import com.textilflow.platform.iam.domain.model.aggregates.User;
-import com.textilflow.platform.iam.domain.model.commands.SignInCommand;
-import com.textilflow.platform.iam.domain.model.commands.SignUpCommand;
-import com.textilflow.platform.iam.domain.model.commands.UpdateUserRoleCommand;
-import com.textilflow.platform.iam.domain.model.commands.UpdateUserDataCommand; // ✅ AGREGAR ESTE IMPORT
+import com.textilflow.platform.iam.domain.model.commands.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.util.Optional;
@@ -41,4 +38,13 @@ public interface UserCommandService {
      * @return the updated user
      */
     Optional<User> handle(UpdateUserDataCommand command);
+    /**
+     * Handle forgot password command
+     */
+    boolean handle(ForgotPasswordCommand command);
+
+    /**
+     * Handle reset password command
+     */
+    boolean handle(ResetPasswordCommand command);
 }

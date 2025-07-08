@@ -16,7 +16,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import com.textilflow.platform.iam.interfaces.rest.resources.ForgotPasswordResource;
+import com.textilflow.platform.iam.interfaces.rest.resources.ResetPasswordResource;
+import com.textilflow.platform.iam.interfaces.rest.transform.ForgotPasswordCommandFromResourceAssembler;
+import com.textilflow.platform.iam.interfaces.rest.transform.ResetPasswordCommandFromResourceAssembler;
 /**
  * Authentication controller for user registration and authentication
  */
@@ -64,5 +67,39 @@ public class AuthenticationController {
         var authenticatedUserResource = AuthenticatedUserResourceFromEntityAssembler
                 .toResourceFromEntity(user, token);
         return ResponseEntity.ok(authenticatedUserResource);
+    }
+
+    /**
+     * Request password reset
+     * @param forgotPasswordResource the forgot password resource
+     * @return success response
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordResource forgotPasswordResource) {
+        var forgotPasswordCommand = ForgotPasswordCommandFromResourceAssembler.toCommandFromResource(forgotPasswordResource);
+        boolean success = userCommandService.handle(forgotPasswordCommand);
+
+        if (success) {
+            return ResponseEntity.ok("Password reset email sent successfully");
+        } else {
+            return ResponseEntity.badRequest().body("Error sending password reset email");
+        }
+    }
+
+    /**
+     * Reset password with token
+     * @param resetPasswordResource the reset password resource
+     * @return success response
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordResource resetPasswordResource) {
+        var resetPasswordCommand = ResetPasswordCommandFromResourceAssembler.toCommandFromResource(resetPasswordResource);
+        boolean success = userCommandService.handle(resetPasswordCommand);
+
+        if (success) {
+            return ResponseEntity.ok("Password reset successfully");
+        } else {
+            return ResponseEntity.badRequest().body("Invalid or expired reset token");
+        }
     }
 }

@@ -4,7 +4,9 @@ import com.textilflow.platform.configuration.domain.model.aggregates.Configurati
 import com.textilflow.platform.configuration.domain.model.commands.ActivateSubscriptionCommand;
 import com.textilflow.platform.configuration.domain.model.commands.CreateConfigurationCommand;
 import com.textilflow.platform.configuration.domain.model.commands.UpdateConfigurationCommand;
+import com.textilflow.platform.configuration.domain.model.valueobjects.Language;
 import com.textilflow.platform.configuration.domain.model.valueobjects.SubscriptionStatus;
+import com.textilflow.platform.configuration.domain.model.valueobjects.ViewMode;
 import com.textilflow.platform.configuration.domain.services.ConfigurationCommandService;
 import com.textilflow.platform.configuration.infrastructure.persistence.jpa.repositories.ConfigurationRepository;
 import org.springframework.stereotype.Service;
@@ -43,30 +45,34 @@ public class ConfigurationCommandServiceImpl implements ConfigurationCommandServ
 
         var configurationToUpdate = result.get();
 
-        // *** NEW: Logic to handle different types of updates ***
+        // *** FIXED: Usar IFs INDEPENDIENTES en lugar de ELSE-IF ***
 
-        // If subscriptionStatus and subscriptionPlan are provided, it's a subscription activation
+        // Update subscription status and plan if provided
         if (command.subscriptionStatus() != null && command.subscriptionPlan() != null) {
             if (command.subscriptionStatus() == SubscriptionStatus.ACTIVE) {
                 configurationToUpdate.activateSubscription(command.subscriptionPlan());
             } else {
                 configurationToUpdate.updateSubscriptionStatus(command.subscriptionStatus());
-                if (command.subscriptionPlan() != null) {
-                    configurationToUpdate.updateSubscriptionPlan(command.subscriptionPlan());
-                }
+                configurationToUpdate.updateSubscriptionPlan(command.subscriptionPlan());
             }
         }
-        // If only subscriptionPlan is provided (without status), update only the plan
+        // Update only subscription plan if provided (without status)
         else if (command.subscriptionPlan() != null) {
             configurationToUpdate.updateSubscriptionPlan(command.subscriptionPlan());
         }
-        // If language and viewMode are provided, update preferences
-        else if (command.language() != null && command.viewMode() != null) {
-            configurationToUpdate.updateSettings(command.language(), command.viewMode());
-        }
-        // If only subscriptionStatus is provided
-        else if (command.subscriptionStatus() != null) {
+
+        // Update only subscription status if provided
+        if (command.subscriptionStatus() != null && command.subscriptionPlan() == null) {
             configurationToUpdate.updateSubscriptionStatus(command.subscriptionStatus());
+        }
+
+        // *** FIXED: SIEMPRE actualizar preferencias si están presentes ***
+        if (command.language() != null || command.viewMode() != null) {
+            // Usar valores actuales si alguno es null
+            Language newLanguage = command.language() != null ? command.language() : configurationToUpdate.getLanguage();
+            ViewMode newViewMode = command.viewMode() != null ? command.viewMode() : configurationToUpdate.getViewMode();
+
+            configurationToUpdate.updateSettings(newLanguage, newViewMode);
         }
 
         try {

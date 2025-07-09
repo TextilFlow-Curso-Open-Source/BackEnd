@@ -43,9 +43,7 @@ public record CreateBatchCommand(String code, String client, Long businessmanId,
         if (status == null) {
             throw new IllegalArgumentException("Status cannot be null");
         }
-        if (imageUrl == null || imageUrl.isEmpty()) {
-            throw new IllegalArgumentException("Image URL cannot be null or empty");
-        }
+
         if (price == null || price <= 0) {
             throw new IllegalArgumentException("Price cannot be null or less than or equal to 0");
         }

@@ -1,5 +1,6 @@
 package com.textilflow.platform.iam.infrastructure.tokens;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
@@ -33,5 +34,7 @@ public interface TokenService {
      * @param request HTTP request
      * @return bearer token
      */
+    String generateResetToken(String email, int expirationMinutes);
+    Claims validateResetToken(String token);
     String getBearerTokenFrom(HttpServletRequest request);
 }

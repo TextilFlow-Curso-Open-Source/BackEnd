@@ -90,4 +90,32 @@ public class JwtTokenService implements TokenService {
         }
         return null;
     }
+
+    @Override
+    public String generateResetToken(String email, int expirationMinutes) {
+        Date issuedAt = new Date();
+        Date expiration = new Date(issuedAt.getTime() + (expirationMinutes * 60 * 1000L)); // minutos a milliseconds
+
+        return Jwts.builder()
+                .subject("password-reset")
+                .claim("email", email)
+                .issuedAt(issuedAt)
+                .expiration(expiration)
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    @Override
+    public Claims validateResetToken(String token) {
+        try {
+            return Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (Exception e) {
+            logger.error("Error validating reset token: {}", e.getMessage());
+            throw new RuntimeException("Invalid reset token");
+        }
+    }
 }

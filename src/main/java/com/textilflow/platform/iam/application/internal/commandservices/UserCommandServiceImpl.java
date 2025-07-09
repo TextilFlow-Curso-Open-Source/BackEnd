@@ -14,6 +14,9 @@ import com.textilflow.platform.iam.infrastructure.tokens.TokenService;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import com.textilflow.platform.iam.application.services.PasswordResetService;
+import com.textilflow.platform.iam.domain.model.commands.ForgotPasswordCommand;
+import com.textilflow.platform.iam.domain.model.commands.ResetPasswordCommand;
 
 import java.util.Optional;
 
@@ -27,15 +30,17 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final HashingService hashingService;
     private final TokenService tokenService;
     private final ApplicationEventPublisher eventPublisher;
-
+    private final PasswordResetService passwordResetService;
     public UserCommandServiceImpl(UserRepository userRepository,
                                   HashingService hashingService,
                                   TokenService tokenService,
-                                  ApplicationEventPublisher eventPublisher) {
+                                  ApplicationEventPublisher eventPublisher,
+                                  PasswordResetService passwordResetService){
         this.userRepository = userRepository;
         this.hashingService = hashingService;
         this.tokenService = tokenService;
         this.eventPublisher = eventPublisher;
+        this.passwordResetService = passwordResetService;
     }
 
     @Override
@@ -127,5 +132,34 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         var updatedUser = userRepository.save(userEntity);
         return Optional.of(updatedUser);
+    }
+    @Override
+    public boolean handle(ForgotPasswordCommand command) {
+        return passwordResetService.sendPasswordResetEmail(command.email());
+    }
+
+    @Override
+    public boolean handle(ResetPasswordCommand command) {
+        // Validar token
+        String email = passwordResetService.validateResetToken(command.token());
+        if (email == null) {
+            return false;
+        }
+
+        // Buscar usuario
+        var userOptional = userRepository.findByEmail(email);
+        if (userOptional.isEmpty()) {
+            return false;
+        }
+
+        // Actualizar contraseña
+        var user = userOptional.get();
+        var hashedPassword = hashingService.encode(command.newPassword());
+
+        // Usar el setter de Lombok para actualizar la contraseña
+        user.setPassword(hashedPassword);
+        userRepository.save(user);
+
+        return true;
     }
 }
